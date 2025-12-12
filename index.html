@@ -305,7 +305,7 @@ button:hover {
   
       <div class="field">
           <label>
-              how much do they like me?
+              how much do they like me? hate ← → infatuated
               <span class="value" id="val_likeMe">50</span>
           </label>
           <input type="range" id="likeMe" min="0" max="100" value="50" />
@@ -329,7 +329,7 @@ button:hover {
   
       <div class="field">
           <label>
-              positivity / optimism
+              negativity ←  → optimism
               <span class="value" id="val_positivity">50</span>
           </label>
           <input type="range" id="positivity" min="0" max="100" value="50" />
@@ -385,18 +385,10 @@ button:hover {
           </label>
           <input type="range" id="hobbiesGym" min="0" max="100" value="50" />
       </div>
-    
-      <div class="field">
-        <label>
-            coolness (social currency/swagggg)
-            <span class="value" id="val_swag">50</span>
-        </label>
-        <input type="range" id="swag" min="0" max="100" value="50" />
-    </div>
   
       <div class="field">
           <label>
-              nerdiness (in a way i like)
+              himbo  ← → nerdiness (in a way i like)
               <span class="value" id="val_nerdiness">50</span>
           </label>
           <input type="range" id="nerdiness" min="0" max="100" value="50" />
@@ -452,20 +444,28 @@ button:hover {
   </div>
 
   <!-- ============================
-       AGENCY & SOCIAL ENERGY
+       SOCIAL ENERGY
        ============================ -->
   <div class="section">
       <h2>
-          agency & social energy
+         social energy
       </h2>
 
       <div class="field">
           <label>
-              chalantness (low agency ← → high agency)
+              nonchalant ← → chalant
               <span class="value" id="val_chalant">50</span>
           </label>
           <input type="range" id="chalantness" min="0" max="100" value="50" />
       </div>
+
+     <div class="field">
+        <label>
+            coolness (social currency/swagggg)
+            <span class="value" id="val_swag">50</span>
+        </label>
+        <input type="range" id="swag" min="0" max="100" value="50" />
+    </div>
 
       <div class="field">
           <label>
@@ -485,7 +485,7 @@ button:hover {
 
       <div class="field">
           <label>
-              stem vibes / stem job energy
+              arts ← → stem energy
               <span class="value" id="val_stem">50</span>
           </label>
           <input type="range" id="stemVibes" min="0" max="100" value="50" />
@@ -541,6 +541,14 @@ button:hover {
         <input type="range" id="puppyFactor" min="0" max="100" value="50" />
     </div>    
   </div>
+
+    <div class="field">
+        <label>
+            agency / follow-through
+            <span class="value" id="val_agency">50</span>
+        </label>
+        <input type="range" id="agency" min="0" max="100" value="50" />
+    </div>
   
   
   <!-- ============================
@@ -720,6 +728,7 @@ const sliderPairs = [
   ["social","val_social"],
   ["gutOverride","val_gut"],
   ["puppyFactor","val_puppy"]
+  ["agency","val_agency"]
 ];
       
       // assign listeners
@@ -764,6 +773,20 @@ const sliderPairs = [
           }
           return 0.0;
       }
+
+        // chalantness: goldilocks curve (slightly chalant = best)
+        function chalantScore(val01) {
+            const ideal = 0.60;   // slightly chalant is best
+            const width = 0.45;   // how quickly extremes become negative
+            let x = (val01 - ideal) / width;
+        
+            // parabolic peak at ideal: 1 at ideal, falls to negative near extremes
+            let s = 1 - x * x;   // 1 → best, <0 → bad
+        
+            // compress scores into -1..+1
+            return Math.max(-1, Math.min(1, s * 1.2));
+        }
+
     
       /* -----------------------------
          CULTURAL SCORE
@@ -774,6 +797,24 @@ const sliderPairs = [
           if (c === "asian-american") return 0.8;
           return 0.5;
       }
+   
+    /* -----------------------------
+        AGENCY MODEL
+    ------------------------------- */
+    function agencyScore() {
+    // 0–1 from slider
+    const raw = slider01("agency");   // 0 (low agency) → 1 (high agency)
+
+    // map to -1..1
+    const s = 2 * raw - 1;
+
+    // shape it:
+    //  - high agency (s > 0) = good
+    //  - low agency (s < 0) = punished more heavily
+    const shaped = s >= 0 ? s : 1.7 * s; // 70% harsher penalty on low agency
+
+    return shaped;  // will feed into a big weight
+}
     
       /* -----------------------------
          RELIGION MODEL
@@ -824,7 +865,7 @@ const sliderPairs = [
           let d = 1 - 4 * Math.pow(val01 - 0.5, 2);
           return Math.max(d, 0);
       }
-    // shyness ↔ gregariousness: slight gregariousness (~0.65) is best
+    // shy ↔ outgoing: slight gregariousness (~0.65) is best
         function shyGregScore(val01) {
             const center = 0.65;   // where it's ideal
             const width  = 0.5;    // how quickly extremes fall off
@@ -924,6 +965,7 @@ const sliderPairs = [
           const wealth       = slider01("wealth");
           const coolness     = slider01("swag");
           const puppy        = slider01("puppyFactor");
+          const agency       = agencyScore();
           const bodyLang     = slider01("bodyLanguage");
           const voice        = slider01("voice");
           const manners      = slider01("manners");
@@ -975,12 +1017,12 @@ const sliderPairs = [
               douchiness:   3,
               promiscuity: -3,
               political:    2
-              stemVibes:    3,    // STEM vibes bonus (medium-strong)
-              chalant:      4.5,  // heavily weighted
-              shyGreg:      3,    // medium weight
-              introExtro:   1.5,  // light preference
-
-          };
+              stemVibes:    3,    
+              chalant:      1.5,  
+              shyGreg:      3,    
+              introExtro:   1.5,  
+              agency:       5   
+};
     
           const contrib = {
               likeMe:       w.likeMe       * signed(likeMe),
@@ -1011,9 +1053,10 @@ const sliderPairs = [
               douchiness:   w.douchiness   * signed(dBalance),
               promiscuity:  w.promiscuity  * promisc,
               stemVibes:    w.stemVibes   * signed(stemVibes),
-              chalant:      w.chalant     * signed(chalant),
+              chalant:      w.chalant     * chalantScore(chalant),
               shyGreg:      w.shyGreg     * shyGregPref,
               introExtro:   w.introExtro  * introExtroPref,
+              agency:       w.agency       * agency,
 
               political:    w.political    * poli,
               gut:          gutBonus
@@ -1053,6 +1096,7 @@ const sliderPairs = [
               w.chalant +
               w.shyGreg +
               w.introExtro +
+              w.agency +         
               0 +               // promiscuity ideal = no penalty
               (2 * w.political) +
               10;               // max gut bonus
@@ -1159,6 +1203,7 @@ const sliderPairs = [
               line("stem vibes / stem job energy", "stemVibes");
               line("chalantness (agency)", "chalant");
               line("shyness ↔ gregariousness", "shyGreg");
+              line("agency / follow-through", "agency");
               line("introvert ↔ extrovert", "introExtro");
               line("gut override", "gut");
     
@@ -1290,7 +1335,7 @@ const sliderPairs = [
         
         <div class="field">
             <label>
-                gut override (harsher ←→ nicer)
+                gut override: what does intuition say? (bad vibes ←→ good vibes)
                 <span class="value" id="val_gut">0</span>
             </label>
             <input type="range" id="gutOverride" min="-10" max="10" value="0" />
