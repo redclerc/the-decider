@@ -746,16 +746,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
       
-      // assign listeners
-      document.addEventListener("DOMContentLoaded", () => {
-          sliderPairs.forEach(([id,label]) => {
-              const input = document.getElementById(id);
-              const out = document.getElementById(label);
-              input.addEventListener("input", () => {
-                  out.textContent = input.value;
-              });
-          });
-      });
       </script>
 <!-- ============================================
      SCORING ENGINE + DECISION LOGIC
