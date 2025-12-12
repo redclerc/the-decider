@@ -539,17 +539,16 @@ button:hover {
             <span class="value" id="val_puppy">50</span>
         </label>
         <input type="range" id="puppyFactor" min="0" max="100" value="50" />
-    </div>    
-  </div>
+    </div>  
 
     <div class="field">
-        <label>
-            agency / follow-through
-            <span class="value" id="val_agency">50</span>
+       <label>
+        agency / follow-through
+        <span class="value" id="val_agency">50</span>
         </label>
-        <input type="range" id="agency" min="0" max="100" value="50" />
+    <input type="range" id="agency" min="0" max="100" value="50" />
     </div>
-  
+  </div>
   
   <!-- ============================
        CULTURAL SIMILARITY / RELIGION / DOUCHINESS
@@ -692,8 +691,7 @@ button:hover {
       <!-- ============================================
            SLIDER VALUE BINDINGS
            ============================================ -->
-      <script>
-// list of [sliderID, labelID]
+<script>
 const sliderPairs = [
   ["likeMe","val_likeMe"],
   ["faceAttract","val_face"],
@@ -709,14 +707,9 @@ const sliderPairs = [
   ["genCuriosity","val_genCurious"],
   ["hobbiesNiche","val_niche"],
   ["foodPref","val_food"],
-  ["swag","val_swag"],          
-  ["stemVibes","val_stem"],
-  ["chalantness","val_chalant"],
-  ["shyGreg","val_shyGreg"],
-  ["introExtro","val_introExtro"],
+  ["swag","val_swag"],
   ["education","val_education"],
   ["wealth","val_wealth"],
-
   ["bodyLanguage","val_bodyLang"],
   ["voice","val_voice"],
   ["manners","val_manners"],
@@ -727,9 +720,31 @@ const sliderPairs = [
   ["econ","val_econ"],
   ["social","val_social"],
   ["gutOverride","val_gut"],
-  ["puppyFactor","val_puppy"]
+  ["puppyFactor","val_puppy"],
+
+  // NEW:
   ["agency","val_agency"]
 ];
+
+document.addEventListener("DOMContentLoaded", () => {
+  sliderPairs.forEach(([id, label]) => {
+    const input = document.getElementById(id);
+    const out = document.getElementById(label);
+
+    if (!input || !out) {
+      console.warn("missing slider or label:", { id, label, input, out });
+      return;
+    }
+
+    // initialize
+    out.textContent = input.value;
+
+    input.addEventListener("input", () => {
+      out.textContent = input.value;
+    });
+  });
+});
+</script>
       
       // assign listeners
       document.addEventListener("DOMContentLoaded", () => {
